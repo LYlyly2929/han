@@ -12,11 +12,21 @@ font:14px monospace;white-space:pre-wrap;z-index:9;}
 #card{
   position:fixed;z-index:5;pointer-events:none;
   display:flex;align-items:baseline;white-space:nowrap;line-height:1.05;
-  filter:drop-shadow(0 0 16px rgba(255,255,255,0.7)) drop-shadow(0 0 6px rgba(220,90,255,0.7));
 }
 .ln{
   display:block;padding:0.12em 0.15em;color:inherit;
   clip-path:inset(-25% 100% -25% -5%);
+}
+/* HanHan：保持原本的暖白光晕（滤镜放外层，避免被文字动画的 clip-path 裁成方框） */
+#name-part{
+  display:flex;align-items:baseline;
+  margin-right:-0.34em;
+  filter:drop-shadow(0 0 16px rgba(255,255,255,0.7)) drop-shadow(0 0 8px rgba(255,215,110,0.85));
+}
+/* Merry Christmas.：淡绿色光晕 */
+#green-part{
+  display:flex;align-items:baseline;
+  filter:drop-shadow(0 0 16px rgba(255,255,255,0.7)) drop-shadow(0 0 8px rgba(150,255,190,0.85));
 }
 @keyframes write{
   from{clip-path:inset(-25% 100% -25% -5%);}
@@ -80,7 +90,7 @@ font:14px monospace;white-space:pre-wrap;z-index:9;}
 </head>
 <body>
 <canvas id=c></canvas>
-<div id=card><span class=ln id=l1></span><span class=ln id=l2></span></div>
+<div id=card><span id=name-part><span class=ln id=l0></span></span><span id=green-part><span class=ln id=l1></span><span class=ln id=l2></span></span></div>
 <div id=err></div>
 
 <!-- 右上角五芒星入口 -->
@@ -91,11 +101,11 @@ font:14px monospace;white-space:pre-wrap;z-index:9;}
   <h3>✨ Customize Greeting</h3>
   <div class="control-group">
     <label>Line 1</label>
-    <input type="text" id="input-l1" value="HanHanMerry">
+    <input type="text" id="input-l1" value="HanHan Merry">
   </div>
   <div class="control-group">
     <label>Line 2</label>
-    <input type="text" id="input-l2" value="Christmas">
+    <input type="text" id="input-l2" value="Christmas.">
   </div>
   <div class="control-group">
     <label>Soundtrack</label>
@@ -132,8 +142,8 @@ const CONFIG={
   starY:8.1, starParticles:2200, starOuterRadius:0.72, starInnerRadius:0.31, starParticleSize:0.78, starBright:3.0, starPulseSpeed:1.35, starFlarePx:120, starFlareBright:3.0, starCoreShrink:8.0, starArm:62, starGlow:1.1,
   
   showText:true,
-  textLine1: customL1 || `HanHanMerry`,
-  textLine2: customL2 || `Christmas`,
+  textLine1: customL1 || `HanHan Merry`,
+  textLine2: customL2 || `Christmas.`,
   textColor:`#fffef8`,
   textGap:0.28,
   textFont:`"Caveat","Reenie Beanie","Patrick Hand","Architects Daughter","Comic Sans MS",cursive`,
@@ -142,7 +152,7 @@ const CONFIG={
   pulseCycle:8.0, pulseBright:1.5, pulseWave:0.12,
   discCount:100000, discRadius:11.5, discY:-0.3, duneRings:5.8, duneHeight:0.60, duneFloor:0.52, duneFill:0.85, duneIrregular:1.0, duneGentle:0.68, duneRipple:0.06, duneContrast:0.85, duneWarm:0.30, discSize:0.88, discAlpha:0.75, discBright:1.40, centerDim:0.50, iceRate:0.04, sparkleRate:0.035, sparkleSpeed:3.0, sparkleBoost:1.8, flareRate:0.008, flareSize:5.0, spinSpeed:0.02, waveAmp:0.08, waveFreq:1.7, waveSpeed:1.4, waveFade:6.0, wavePulse:0.5,
   backgroundStars:4000, bgFlareCount:0, bgFlarePx:80, bokehCount:70, bokehAlpha:0.12,
-  bloomStrength:1.0, bloomRadius:1.8, bloomRes:0.5,
+  bloomStrength:1.2, bloomRadius:1.8, bloomRes:0.5,
   autoRotate:0.0375, centerY:2.4, camDist:20, camTilt:0.15
 };
 
@@ -200,7 +210,7 @@ localMusicFile.addEventListener('change', (e) => {
 
 inputL1.addEventListener('input', (e) => {
   CONFIG.textLine1 = e.target.value;
-  document.getElementById('l1').textContent = CONFIG.textLine1;
+  renderText();
 });
 inputL2.addEventListener('input', (e) => {
   CONFIG.textLine2 = e.target.value;
@@ -238,14 +248,24 @@ fontLink.href=`https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=P
 document.head.appendChild(fontLink);
 
 const card=document.getElementById(`card`);
+const ln0=document.getElementById(`l0`);
 const ln1=document.getElementById(`l1`);
 const ln2=document.getElementById(`l2`);
-ln1.textContent=CONFIG.textLine1;
-ln2.textContent=CONFIG.textLine2;
+const greenPart=document.getElementById(`green-part`);
+function splitHead(s){const p=String(s).trim().split(/\s+/);return [p[0]||``,p.slice(1).join(` `)];}
+function renderText(){
+  const [head,tail]=splitHead(CONFIG.textLine1);
+  ln0.textContent=head;
+  ln1.textContent=tail;
+  ln2.textContent=CONFIG.textLine2;
+}
+renderText();
 card.style.fontFamily=CONFIG.textFont;
 card.style.color=CONFIG.textColor;
 card.style.gap=CONFIG.textGap+`em`;
+greenPart.style.gap=CONFIG.textGap+`em`;
 card.style.display=CONFIG.showText?`flex`:`none`;
+ln0.style.animation=`write ${CONFIG.textDur}s ease-out ${CONFIG.textDelay}s both`;
 ln1.style.animation=`write ${CONFIG.textDur}s ease-out ${CONFIG.textDelay}s both`;
 ln2.style.animation=`write ${CONFIG.textDur}s ease-out ${CONFIG.textDelay+CONFIG.textDur*0.85}s both`;
 function layoutText(){
@@ -276,10 +296,10 @@ varying vec4 vP2;
 vec3 rotY(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);}
 float hash(float n){return fract(sin(n)*43758.5453);}
 vec3 rampRibbon(float t){
-  vec3 rose=vec3(1.15,0.45,0.75);
-  vec3 ice=vec3(0.40,0.88,1.25);
-  vec3 lilac=vec3(0.90,0.48,1.25);
-  vec3 gold=vec3(1.20,0.88,0.48);
+vec3 rose=vec3(0.50, 1.20, 0.80);
+vec3 ice=vec3(0.85, 1.25, 1.10);
+vec3 lilac=vec3(0.30, 0.95, 0.65);
+vec3 gold=vec3(0.70, 1.20, 0.90);
   vec3 c=mix(rose,ice,smoothstep(0.10,0.34,t));
   c=mix(c,lilac,smoothstep(0.42,0.62,t));
   c=mix(c,gold,smoothstep(0.70,0.92,t));
@@ -649,8 +669,8 @@ function tierPoint(k,v,f,a){
   }
   return [Math.cos(a)*r,y,Math.sin(a)*r];
 }
-const C_HOT=[1.20,0.22,0.72],C_ROSE=[1.20,0.42,0.88],C_ORCH=[0.92,0.25,1.20],C_VIO=[0.62,0.28,1.20];
-const C_LP=[1.20,0.75,0.98],C_WH=[1.20,0.96,1.15];
+const C_HOT=[0.10,1.05,0.55],C_ROSE=[0.25,1.15,0.75],C_ORCH=[0.05,0.65,0.40],C_VIO=[0.35,0.90,0.95];
+const C_LP=[0.60,1.20,1.10],C_WH=[1.10,1.20,1.20];
 function pickBody(k){
   const x=R(),wv=0.12+0.26*(k/4);
   if(x<wv)return C_VIO;
@@ -700,8 +720,7 @@ for(let i=0;i<Math.round(CONFIG.groundTrace*(mobile?0.55:1));i++){
 }
 gEnd(false,true);
 
-const LCOL=[[1.20,0.75,0.45],[1.20,0.92,0.85],[1.20,0.45,0.80],[0.50,0.85,1.20],[0.85,0.55,1.20]];
-gBegin();
+const LCOL=[[0.10,0.80,0.50],[1.10,0.60,0.80],[0.30,0.85,1.10],[1.10,1.10,0.90],[0.50,1.10,0.80]];
 const NLT=Math.round(CONFIG.lightCount*(mobile?0.55:1));
 for(let i=0;i<NLT;i++){
   const k=pickTier();
@@ -753,13 +772,12 @@ const MINI=[[-1.25,0.55,0.45],[1.35,0.20,0.35],[0.80,1.05,0.30],[-0.70,-0.45,0.2
 for(const m of MINI){add(7,[m[0],m[1],0],m[2],R(),[1.20,0.94,0.80],1);}
 gEnd(false,true);
 
-const D_DEEPVIOLET=[0.35,0.15,0.88];
-const D_NEONPINK=[1.15,0.30,0.85];
-const D_LILAC=[0.78,0.40,1.15];
-const D_DARKPINK=[0.48,0.18,0.58];
-const D_ICEBLUE=[0.35,0.78,1.25];
-const D_GOLD=[1.15,0.75,0.48];
-
+const D_DEEPVIOLET=[0.05,0.22,0.12];  // 幽暗森林绿（绝对不是纯黑，是暗绿底色）
+const D_NEONPINK=[0.20,1.15,0.65];    // 荧光青绿（高光，极度亮）
+const D_LILAC=[0.35,0.95,0.85];       // 浅海蓝绿（过渡，带点蓝调，很仙）
+const D_DARKPINK=[0.08,0.50,0.30];    // 翠绿（中景，填补层次）
+const D_ICEBLUE=[0.40,1.10,1.15];     // 冰晶青（冷色点缀）
+const D_GOLD=[1.20,1.15,0.70];        // 暖金色（必须保留！它是打破全绿沉闷的灵魂）
 const DR=CONFIG.discRadius,DH=CONFIG.duneHeight,RINGS=CONFIG.duneRings,FLOOR=CONFIG.duneFloor;
 const IRR=CONFIG.duneIrregular,GEN=Math.min(Math.max(CONFIG.duneGentle,0.5),0.9);
 function dune(r,a){
